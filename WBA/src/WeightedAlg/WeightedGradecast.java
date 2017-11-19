@@ -13,9 +13,8 @@ public class WeightedGradecast {
     public ListenerGrade listener;
     public double[] w; //weights
     public GradecastMsg[] msgs; //store msg received from others
-    public Map<Integer, GradecastMsg[]> msgs2; //store msgs received in phase 2
+    public Map<Integer, GradecastMsg[]> gms; //store msgs received
     public double r; //maximum weights that can fail
-    public Map<Integer, GradecastMsg[]> msgs3; //store msgs received in phase 3
     public List<int[]> grades; //score for each leader
 
     public WeightedGradecast(int value, int n, String[] ps, int[] ports, int id, double[] w, double r) {
@@ -27,15 +26,14 @@ public class WeightedGradecast {
         this.id = id;
         this.listener = new ListenerGrade(ports[id], this);
         this.msgs = new GradecastMsg[n];
-        msgs2 = new HashMap<>();
+        gms = new HashMap<>();
         this.w = w;
         this.r = r;
-        msgs3 = new HashMap<>();
         this.grades = new ArrayList<>();
     }
 
     public void gradecast() {
-        GradecastMsg msg = new GradecastMsg(id, value);
+        GradecastMsg msg = new GradecastMsg(id, value, id);
         //phase 1
         for(int i = 0; i < n; i++) {
             if(i == id) {
@@ -47,25 +45,28 @@ public class WeightedGradecast {
         }
         waitForTimeout();
         //phase 2
+
         for(int i = 0; i < n; i++) {
+			GradecastMsg gm = new GradecastMsg(msgs[i].leader,msgs[i].value, id);
             if(i == id) {
-                this.handleGrade(msgs[i]);
+                this.handleGrade(gm);
             } else {
-                Messager.sendMsg(msgs[i], procs[i],ports[i]);
+                Messager.sendMsg(gm, procs[i],ports[i]);
             }
         }
         waitForTimeout();
         //phase 3
         for(int i = 0; i < n; i++) {
-            double[] m = getMajority(msgs2, i);
+            double[] m = getMajority(gms, i);
             if(m[1] >= 1 - r) {
-                GradecastMsg gradecastMsg = new GradecastMsg(i, (int)m[0]);
+                GradecastMsg gradecastMsg = new GradecastMsg(i, (int)m[0], id);
                 broadcast(gradecastMsg);
             }
         }
+		gms = new HashMap<>(); // clean map
         waitForTimeout();
         for(int i = 0; i < n; i++) {
-            double[] m = getMajority(msgs3, i);
+            double[] m = getMajority(gms, i);
             int confidence = 0;
             int value = -1;
             if(m[1] >= 1 - r) {
@@ -92,6 +93,7 @@ public class WeightedGradecast {
             }
         }
     }
+
     public double[] getMajority(Map<Integer, GradecastMsg[]> map, int leader) {
         double[] res = new double[2];
         double c0 = 0, c1 = 0;
@@ -123,7 +125,17 @@ public class WeightedGradecast {
     }
 
     public void handleGrade(GradecastMsg msg) {
-
+		int leader = msg.leader;
+		int value = msg.value;
+		int sender = msg.sender;
+		if(!gms.containsKey(leader)) gms.put(leader, new GradecastMsg[n]);
+		GradecastMsg[] gm = gms.get(leader);
+		gm[msg.sender] = msg;
     }
+
+
+	public static void main(String...args) {
+		int id = Integer.parseInt(args[0]);
+		
 
 }

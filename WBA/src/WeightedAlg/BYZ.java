@@ -7,7 +7,7 @@ public class BYZ {
     public float[] w;
     public String[] server;
     public int[] port;
-    public Listener ls;
+    public ListenerQueen ls;
     public int id;
     public float s0;
     public float s1;
@@ -21,7 +21,7 @@ public class BYZ {
         this.w = w;
         this.server = server;
         this.port = port;
-        this.ls = new Listener(port[id], this);
+        this.ls = new ListenerQueen(port[id], this);
         ls.start();
         this.id = id;
         s0 = 0;
