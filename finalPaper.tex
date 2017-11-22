@@ -1,0 +1,481 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{algorithm}
+\usepackage[]{algorithmic}
+\usepackage{amsthm}
+\newtheorem{t1}{Theorem}
+\newtheorem{l1}{Lemma}
+\newtheorem{claim*}{Claim}
+
+%\usepackage{algpseudocode}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\begin{document}
+
+\title{Gradecast for Weighted Byzantine Agreement\\
+}
+
+\author{\IEEEauthorblockN{Xiong Zheng}
+\IEEEauthorblockA{\textit{Department of Electrical and Computer Engineering} \\
+\textit{The University of Texas at Austin}\\
+Austin, USA \\
+zhengxiongtym@utexas.edu}
+\and
+\IEEEauthorblockN{Haowei Sun}
+\IEEEauthorblockA{\textit{Department of Electrical and Computer Engineering} \\
+\textit{The University of Texas at Austin}\\
+Austin, USA \\
+michelle.shw@utexas.edu}
+}
+
+\maketitle
+
+\begin{abstract}
+This document is a model and instructions for \LaTeX.
+This and the IEEEtran.cls file define the components of your paper [title, text, heads, etc.]. *CRITICAL: Do Not Use Symbols, Special Characters, Footnotes, 
+or Math in Paper Title or Abstract.
+\end{abstract}
+
+\begin{IEEEkeywords}
+component, formatting, style, styling, insert
+\end{IEEEkeywords}
+
+\section{Introduction}
+The Byzantine Agreement (BA) [1], [2] is a fundamental
+problem in distributed computing with extensive literature [3]–
+[9]. In the usual set-up, there are N processes required to agree
+on a common value, given that at most f of them may show
+arbitrary or Byzantine behavior. In real-life applications, there
+may be multiple classes of processes. For example, in a mobile
+computing scenario, mobile hosts may be more likely to fail
+compared to mobile stations. In another example, processes in
+the same data center may be more likely to fail together. This
+paper defines a weighted version of the Byzantine Agreement
+Problem (WBA) and provides lower bounds and algorithms
+for it. In WBA, each process Pi is assigned a weight w[i],
+such that 0 ≤ w[i] ≤ 1 and the sum of all weights is 1.
+The WBA problem requires a protocol to reach consensus
+when the total weight of the failed processes is at most ρ.
+The weighted version gives some surprising results for the
+BA problem. First, even if greater than N=3 processes are
+Byzantine, the system can still reach consensus so long as ρ
+is less than 1=3. This result is quite useful in the system with
+a small set of trusted processes and a large set of less trusted
+processes.
+Secondly, the message complexity and the number of rounds
+required to achieve consensus for the weighted version is
+shown to always be less than or equal to those for the unweighted version. Suppose the system must tolerate ρ = f=N
+for any integer f such that 0 ≤ f < N=3. It is known 
+\section{System Model}
+The system model used in this paper is a distributed system
+with $N$ processes, $P1...PN$, with a completely connected topology. The underlying system is assumed to be synchronous; i.e.,
+there is an upper bound on the message delay and on the duration of actions performed by processes. The model assumes
+that processes may fail; but, the underlying communication
+system is reliable and satisfies first-in first-out (FIFO) message
+ordering. The processes may fail in an arbitrary fashion; in
+particular, they may lie and collude with other failed processes
+to foil any protocol. The processes that do not fail in any
+computation are called correct processes. Assume that there
+is a non-negative weight $w[i]$ associated with each process
+Pi. All processes in the system have complete knowledge
+of weights of all the processes. For simplicity, assume that
+weights are normalized; i.e., the sum of all weights is one.
+Let $ρ$ be the sum of weights of all failed processes. This paper
+assumes that $ρ$ is strictly less than one.The Weighted Byzantine Agreement (WBA) problem can be specified as follows. All processes propose a binary value with the goal of deciding on one common value. Given a
+weight assignment to all processes, and the assumption that
+the weight of processes that fail during the execution is at most
+$ρ$, the WBA problem is to design a protocol that satisfies the
+following conditions:
+• Agreement: Two correct processes cannot decide on
+different values.
+• Validity: The value decided must be proposed by some
+correct process.
+• Termination: All correct processes decide in finite number of steps.
+The following lower bounds follow easily from the standard
+BA lower bound arguments.
+Lemma 1: There is no protocol to solve the WBA problem
+for all values of $w$ when ρ $\leq$ 1/3.
+
+
+\section{Weighted Gradecast Algorithm}
+Gradecast[7] is a distributed algorithm that ensures some properties that are similar to those of broadcast. Specifically, in Gradecast there is a sender node $p$ that sends a value $v$ to all other. Each node $q’$s output is a pair hvq, cqi where vq is the value $q$ thinks $p$ has sent and $c_q$ is $q'$s confidence in this value. The Gradecast properties ensure that:
+
+1. If $p$ is non-faulty then $v_q$ = $v$ and $c_q = 2$, for every non-faulty $q$;
+
+2. For every non-faulty nodes $q$, $q'$: if $c_q > 0$ and $c_q' > 0$ then $v_q = v_q'$;
+
+3. $|c_q - c_q'| \leq 1$ for every non-faulty nodes $q$, $q'$.
+
+
+For the WBA problem,  in order to apply gradecast, we simply need to do some minor modification of the original gradecast algorithm proposed by Michael et. all in [8]. The algorithm uses constant size messages and requires that $\rho < 1/3$. Each process has a preferred value for each round. The modified algorithm is presented in Fig. 1. To show the WEIGHTED-GRADECAST algorithm can solve the WBA problem, we need to show that the above three Gradecast properties hold and the proof for Byzantine consensus in [8] still holds. 
+ 
+\begin{claim*}
+if non-faulty node $p$ has $c_q = 2$, then any other non-faulty node $q$ has $c_q \geq 1$ and $v_q = v_p$
+\begin{proof}
+Since $c_p = 2$, from the grading part of \textbf{Algorithm 1} we know that the total weight $w'$ (for $v_p) \leq 1 - \rho$. There are at most $\rho$ faulty nodes which implies that the weights from non-faulty nodes for value $v_p$ in round 3 is at least $1 - 2*\rho$. Similarly,  the weights from non-faulty Since $\rho < 1/3$, we have $1 - 2*\rho > \rho$. So for any other non-fault node $q$, the total weights for value $v_p$ is at least $\rho$. Therefore, $c_q \leq 1$ and $v_q = v_p$.
+\end{proof}
+\end{claim*}
+
+
+\begin{claim*}
+$\forall$ non-faulty $p$ and $q$, if $c_p = c_q = 1$, then $v_p = v_q$. 
+\begin{proof}
+$c_p = c_q = 1$ implies that leader must be faulty, otherwise $c_p = c_q = 2$. Also, the total weights node $p$ and $q$ gathered for $v_p$ and $v_q$ both lie between $1 - \rho$ and $\rho$, which implies that at least one non-faulty node in round 3 got majority weights $\geq 1 - \rho$ for value $v_p$ and $v_q$, respectively. After round 2,  each non-faulty process holds $1 - \rho$ of values from all non-faulty process, so they have $1 - \rho$ values which are exactly the same. For a non-faulty node to send out a value in round 3, this node must have at least $1 - \rho$ weights for that value. So there is at least $1 - 2*\rho$ for $v_p$ and $v_q$ among the non-faulty nodes. Suppose $v_q != v_p$. since $\rho < 1/3$, $1 - 2*\rho + 1 - 2*\rho = 2 - 4*\rho > 1 - \rho$, which gives a contradiction. Therefore, $v_p = v_q$.
+\end{proof}
+\end{claim*}
+
+\begin{t1}
+WEIGHTED-GRADECAST satisfy all Gradecast properties
+\begin{proof}
+Property 1 can be directly induced from the algorithm. If the leader is non-faulty with value $v$,  then after the first two rounds, every non-faulty node has at least $1 - \rho$ of $v$. So in Phase 3, every non-faulty node will send $v$ to all other nodes, then after Phase 3 every non-faulty node gets at least $1 - \rho$ of $v$. Thus, any non-fault node $p$ will have $v_p = v$ and $c_p = 2$, which implies property 1. 
+ 
+Property 3 can be obtained from claim 1. Claim 1 is actually equivalent to arguing that there couldn't be the case that one non-fault node has confidence 2 for the leader while another has confidence 0. That is to say, for all non-faulty $q$ and $q'$, $|c_q - c_q'| \leq 1$, which proves property 3 of Gradecast.
+
+For property 2, we have the following two cases. 
+
+Case 1: $c_q = 2$ or $c_q' = 2$. Without loss of generality,  we assume $c_q = 2$. From claim 1, we know that $c_q' \leq 1$ and $v_q = v_q'$,  which satisfy property 2.
+
+Case 2: $c_q = c_q' = 1$. From claim 2, we have $v_q = v_q'$. So, this case also satisfy property 2. 
+Thus, for every non-faulty nodes $q$, $q'$: if $c_q > 0$ and $c_q' > 0$, then $v_q = v_q'$. Property 2 holds.
+
+Therefore, \textit{WEIGHTED-GRADECAST} satisfy all Gradecast properties. 
+\end{proof}
+\end{t1}
+
+
+\begin{l1}
+(Persistence of Agreement): Assuming $\rho < 1/3$, if all correct processes  
+prefer a same value $v$ at the beginning of a round, then all non-faulty nodes that are still in the main loop exit the loop and update their value to $v$. 
+\begin{proof}
+All non-faulty nodes see at least $1 - \rho$ of $v$ with confidence 2. Thus by Line 5, 7 they update their value to $v$, and (if they are still in the loop) by Line 9, 10 they all exit the loop.
+\end{proof}
+\end{l1}
+
+
+Fig. 2 gives the BYZCONSENSUS-EARLY algorithm to solve the WBA problem based on WEIGHTED-GRADECAST with early stopping property. 
+
+Denote by $\cup BAD_r$ the union of all $BAD$ variables for non-faulty nodes at the beginning of round r. Similarly, denote by $\cap BAD_r$ the intersection of all $BAD$ variables for non-faulty nodes.
+at the beginning of iteration r.
+
+\begin{l1}
+(Early Stopping): if there are only $\rho' \leq \rho$ failures,  BYZCONSENSUS-EARLY terminates within $min\{\alpha_\rho' + 1, \alpha_\rho\}$ rounds. 
+\begin{proof}
+\end{proof}
+\end{l1}
+
+\begin{t1}
+BYZCONSENSUS-EARLY solves the WBA problem.
+\begin{proof}
+From Lemma 1 it is clear that validity holds. To show that agreement holds, we need to consider the following two cases. 
+
+Case 1: if a non-faulty node passes the condition of Line 9 in the first t rounds, then by claim 7 and Lemma 1 agreement holds.  
+
+Case 2: if no non-faulty node passes the condition of Line 9 in the first $t$ rounds, then all non-faulty nodes perform the main loop of BYZCONSENSUS $t + 1$ times. By claim 6 and Lemma 1 this means that in every round of the first $t$ rounds there is some pair of non-faulty nodes that have different values of $maj$. By Claim 5, $|\cap BAD_{t+1}| > | \cap BAD_t| > ... > |\cap BAD_1| = 0$. Thus, $|\cap BAD_{t+1}| \geq t$. Thus, in iteration $t + 1$ all non-faulty nodes ignore messages from all Byzantine nodes. Therefore, all non-faulty nodes see only $1 - \rho$ of same set of values  and thus they agree on the value of $maj$. By Claim 6 all non-faulty nodes end round $t + 1$ with the same value of $v$
+\end{proof}
+\end{t1}
+
+\begin{algorithm}
+\caption{WEITED-GRADECAST ($q$, IGNORE{$p$})}
+\begin{algorithmic}[1]
+\STATE \textbf{set} ignore all messages being received below from nodes in IGNORE\textit{p};
+\IF {$\textit{p} = \textit{q}$} 
+\STATE $v$ = \lq{the input value}\rq
+\ENDIF
+\item[]
+\item[]
+\textit{/* Dissemination */}
+\STATE \textbf{Phase 1:} The leader $q$ sends v to all:
+\STATE \textbf{Phase 2:} \textit{p} sends the value received from \textit{q} to all;
+\item[]
+\item[]
+\textit{/* Notations */}
+\STATE \textbf{let} $<$\textit{j}, \textit{${v}_{j}$}$>$ represent that \textit{p} received \textit{${v}_{j}$} from \textit{j};
+\STATE \textbf{let} \textit{maj} be a value received the most among such values;
+\STATE \textbf{let} $w$ be the total weights gathered for $maj$;
+\item[]
+\item[]
+\textit{/* Support */}
+\STATE \textbf{Phase 3:} \IF {$w \geq 1 - \rho $} 
+\STATE $p$ sends \textit{maj} to all;
+\ENDIF
+\item[]
+\item[]
+\textit{/* Notations */}
+\STATE \textbf{let} $<$\textit{j}, \textit{${v'}_{j}$}$>$ represent that \textit{p} received \textit{${v'}_{j}$} from \textit{j};
+\STATE \textbf{let} \textit{maj'} be a value received the most among such values;
+\STATE \textbf{let} $w'$ be the total weights gathered for \textit{maj'};
+\item[]
+\item[]
+\textit{/* Grading */}
+\STATE \textbf{if} $w' \geq 1 - \rho $  \textbf{set} \textit{${v}_{p}$} := \textit{maj'} and \textit{${c}_{p}$} := 2;
+\STATE \textbf{otherwise}, \textbf{if} $w' > \rho $ \textbf{set} \textit{${v}_{p}$} := \textit{maj'} and \textit{${c}_{p}$} := 1;
+\STATE  \textbf{otherwise} \textbf{set} $\textit{${v}_{p}$} = \perp$ and \textit{${c}_{p}$} = 0;
+\item[]
+\STATE \textbf{return} $<$\textit{q},\textit{${v}_{p}$},\textit{${c}_{p}$}$>$
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+\caption{BYZCONSENSUS-EARLY}\label{euclid}
+\textit{/* Initialization on node p */}
+\begin{algorithmic}[1]
+\STATE $\textbf{set} ~\textit{BAD} := \emptyset;$
+\item[]
+\item[]
+\textit{/* Main loop */}
+\FOR{$\textit{r} := 1$ to $\textit{t} + 1$}
+\STATE \textbf{WEIGHTED-GRADECAST}(\textit{p}, \textit{BAD}) with input value \textit{v}
+\item[]
+\item[]
+\textit{/* Notations */}
+\STATE \textbf{let} $<$\textit{q}, \textit{v}, \textit{c}$>$ represent that \textit{q} gradecasted \textit{v} with confidence \textit{c}
+\STATE \textbf{let} \textit{maj} be the value received the most among values with confidence $\geq$ 1
+(if there is more than one such value, take the lowest)
+\STATE \textbf{let} $w$ be the total weights of \textit{maj} with confidence 2
+\item[]
+\item[]
+\textit{/* Updates */}
+\STATE \textbf{set} \textit{v} $:=$\textit{maj}
+\STATE \textbf{set} \textit{BAD} $:=$ \textit{BAD} $\cup$ \{$q \mid$ received $<q$, $\ast$, $c>$ with $c \leq$ 1\}
+\IF {$w \geq 1 - \rho$}
+\STATE break loop
+\ENDIF
+\ENDFOR
+\item[]
+\STATE \textbf{if} executed for $<$ t + 1 iterations then participate in one more iteration
+\STATE return \textit{v}
+
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}
+\caption{BYZCONSENSUS-ANCHOR}\label{euclid}
+\textit{/* Initialization on node $p_i$ */}
+\begin{algorithmic}[1]
+\STATE $\textbf{set} ~\textit{BAD} := \emptyset;$
+\item[]
+\item[]
+\textit{/* Main loop */}
+\FOR{$\textit{r} := 1$ to $\alpha_\rho$}
+\STATE \textbf{WEIGHTED-GRADECAST}(\textit{p}, \textit{BAD}) with input value \textit{v}
+\item[]
+\item[]
+\textit{/* Notations */}
+\STATE \textbf{let} $<$\textit{q}, \textit{v}, \textit{c}$>$ represent that \textit{q} gradecasted \textit{v} with confidence \textit{c}
+\STATE \textbf{let} \textit{maj} be the value received the most among values with confidence $\geq$ 1
+(if there is more than one such value, take the lowest)
+\STATE \textbf{let} $w$ be the total weights of \textit{maj} with confidence 2
+\item[]
+\item[]
+\textit{/* Updates */}
+\STATE \textbf{set} \textit{v} $:=$\textit{maj}
+\STATE \textbf{set} \textit{BAD} $:=$ \textit{BAD} $\cup$ \{$q \mid$ received $<q$, $\ast$, $c>$ with $c \leq$ 1\}
+\item[]
+\item[]
+\textit{/* King Phase */}
+\IF {$r = i$} 
+\STATE send $v$ to all other process
+\ENDIF
+\STATE receive $kingvalue$ from $p_r$
+\IF {$w < 1 - \rho$}
+\STATE $v = kingvalue$ 
+\ENDIF
+\ENDFOR
+\item[]
+\STATE return \textit{v}
+
+\end{algorithmic}
+\end{algorithm}
+
+\begin{l1} 
+Assuming $\rho < 1/3$, BYZCONSENSUS-ANCHOR algorithm satisfies persistence of agreement.
+\begin{proof}
+If all correct processes agree on value $v$ at the beginning of a round, after executing WEITED-GRADECAST, they all see at least $1 - \rho$ of $v$ with confidence 2. Thus,  by line  5 and 7 they all update their value to be $v$. By line 9 and 10, they will choose $v$ instead of $kingvalue$. So all correct process agree on value $v$ at next round.  
+\end{proof}
+\end{l1}
+
+\begin{l1}
+There is at least one round in which the king is correct.
+\begin{proof}
+By assumption, the total weight of processes that
+have failed is less than ρ. The for loop is executed αρ times.
+By definition of $\alpha_\rho$, there exists at least one round in which
+the king is correct.
+\end{proof}
+\end{l1}
+
+\begin{t1}
+BYZCONSENSUS-ANCHOR solves the weighted agreement problem in $\alpha_\rho$ rounds for $\rho < 1/3$.
+\begin{proof}
+From lemma 2, validity holds. Since the algorithm only runs $\alpha_\rho$ rounds, termination is guaranteed. From Lemma 3, there is at least one round the king is correct. In that round, every correct process will choose either king's value or its own value. One process can choose its own value only when it has at least $1 - \rho$ weights for its own value. From Claim 3,  we know that if one correct process chooses its own value $v$,  then all other process set their value to be $v$ by Line 7. So every correct process has the same value. So agreement property is satisfied. 
+\end{proof}
+\end{t1}
+
+\section{Updating Weights}
+In this section, the case when the system is required to solve
+BA multiple times is considered. This case arises in most real-life applications of BA, such as, maintenance of replicated data
+and fault-tolerant file systems [20]. In addition, each execution
+of the BA protocol provides certain feedback in terms of the
+processes’ behaviour. Every process stores a set of processes it believes to be faulty, which motivates us to devise an algorithm to achieve consensus on the faulty set among all non-faulty processes. Fig. 3 gives an algorithm to detect the set of processes that are definitely faulty and let all non-faulty processes agree on this set. After having agreed on the faulty set, weights can be updated by setting the weights of faulty processes to be zero and giving non-faulty ones higher weights. We can notice that for the BYZCONSENSUS-EARLY algorithm, there is no need to update weights since the number of rounds does not depend on the weights of process. However, the number of rounds in BYZCONSENSUS-ANCHOR algorithm depends on the anchor of the system. If reliable processes has higher weights, then the anchor would be reduced. Therefore, the WEIGHT-UPDATE algorithm should be combined with BYZCONSENSUS-ANCHOR in practical settings.
+
+\begin{algorithm}
+\caption{WEIGHT-UPDATE}\label{euclid}
+\textit{/* Executed on process $p_{i}$ with faulty set $BAD_{i} $ */}
+
+\begin{algorithmic}[1]
+\STATE $\textbf{set} ~\textit{faulty} := \emptyset;$
+\item[]
+\item[]
+\textit{/* Detect Faulty */}
+\FOR {$\textit{k} := 1$ to $\textit{n}$}
+\IF {$k \in BAD_i$}
+\STATE $value$ := BYZCONSENSUS-EARLY(1)
+\ELSE
+\STATE $value$ := BYZCONSENSUS-EARLY(0)
+\ENDIF
+\IF {$value = 1$} 
+\STATE $faulty := faulty \cup {k}$
+\ENDIF
+\ENDFOR
+\item[]
+\item[]
+\textit{/* Update Weights */}
+\STATE float $totalWeight := 1.0$
+\FORALL {$j \in faulty$}
+\STATE $totalWeight := totalWeight - w[j]$
+\STATE $w[j] := 0$
+\ENDFOR
+\FORALL {$j$}
+\STATE $w[j] := w[j]/totalWeight$
+\ENDFOR
+\end{algorithmic}
+\end{algorithm}
+
+The correctness of the algorithm in Fig.4 is shown in the following lemma and theorem. Let $r_i$ be the rounds process $p_i$ took to exit the main loop in BYZCONSENSUS-EARLY. Let $r_m$ be the minimum round among $r_i$  
+
+\begin{l1}
+WEIGHT-UPDATE guarantees that $r_m - 1$ faulty processes will be detected. 
+\begin{proof}
+
+\end{proof}
+\end{l1}
+
+
+\section{Simulation}
+
+\section{Conclusion}
+This paper has presented a weighted version of the Byzantine Agreement Problem and provided solutions for the problem in a synchronous distributed system. We show that the
+weighted version has the advantage of using fewer messages
+and tolerating more failures (under certain conditions) than
+is required by the lower bound for the unweighted version.
+These algorithms have applications in many systems in which
+there are two classes of processes: trusted and untrusted
+processes. Instead of tolerating any f faults in the BA problem,
+these algorithms tolerate failure of processes with total weight
+less than f=N. For example, an implementation can now
+tolerate more than f faults of untrusted processes; but, fewer
+than f faults of trusted processes depending on the weight
+assignment. A fault-tolerant method has also been presented
+to update the weights at all the correct processes. This algorithm is useful for many applications where the agreement is
+required multiple times. Our update algorithm guarantees that
+the weight of a correct process is never reduced and the weight
+of any faulty process, suspected by correct processes whose
+total weight is at least 1=4, is reduced to 0.
+\section*{References}
+
+Please number citations consecutively within brackets \cite{b1}. The 
+sentence punctuation follows the bracket \cite{b2}. Refer simply to the reference 
+number, as in \cite{b3}---do not use ``Ref. \cite{b3}'' or ``reference \cite{b3}'' except at 
+the beginning of a sentence: ``Reference \cite{b3} was the first $\ldots$''
+
+Number footnotes separately in superscripts. Place the actual footnote at 
+the bottom of the column in which it was cited. Do not put footnotes in the 
+abstract or reference list. Use letters for table footnotes.
+
+Unless there are six authors or more give all authors' names; do not use 
+``et al.''. Papers that have not been published, even if they have been 
+submitted for publication, should be cited as ``unpublished'' \cite{b4}. Papers 
+that have been accepted for publication should be cited as ``in press'' \cite{b5}. 
+Capitalize only the first word in a paper title, except for proper nouns and 
+element symbols.
+
+For papers published in translation journals, please give the English 
+citation first, followed by the original foreign-language citation \cite{b6}.
+
+\begin{thebibliography}{00}
+\bibitem{b1} G. Eason, B. Noble, and I. N. Sneddon, ``On certain integrals of Lipschitz-Hankel type involving products of Bessel functions,'' Phil. Trans. Roy. Soc. London, vol. A247, pp. 529--551, April 1955.
+\bibitem{b2} J. Clerk Maxwell, A Treatise on Electricity and Magnetism, 3rd ed., vol. 2. Oxford: Clarendon, 1892, pp.68--73.
+\bibitem{b3} I. S. Jacobs and C. P. Bean, ``Fine particles, thin films and exchange anisotropy,'' in Magnetism, vol. III, G. T. Rado and H. Suhl, Eds. New York: Academic, 1963, pp. 271--350.
+\bibitem{b4} K. Elissa, ``Title of paper if known,'' unpublished.
+\bibitem{b5} R. Nicole, ``Title of paper with only first word capitalized,'' J. Name Stand. Abbrev., in press.
+\bibitem{b7} Y. Yorozu, M. Hirano, K. Oka, and Y. Tagawa, ``Electron spectroscopy studies on magneto-optical media and plastic substrate interface,'' IEEE Transl. J. Magn. Japan, vol. 2, pp. 740--741, August 1987 [Digests 9th Annual Conf. Magnetics Japan, p. 301, 1982].
+\bibitem{b7} M. Young, The Technical Writer's Handbook. Mill Valley, CA: University Science, 1989.
+\end{thebibliography}
+
+[7]Paul Feldman and Silvio Micali. Optimal algorithms for byzantine agreement. In STOC ’88:
+Proceedings of the twentieth annual ACM symposium on Theory of computing, pages 148–161,
+New York, NY, USA, 1988. ACM.
+
+
+[8]Simple Gradecast Based Algorithm
+
+\begin{appendices}
+\section{Claims}
+\begin{claim*}
+If $\cup BAD_r$ contains only faulty nodes, then the properties of gradecast, following its execution in Line 3, hold.
+\begin{proof}
+If ∪BADr contains only faulty nodes, then the properties of gradecast, following its execution in Line 3, hold
+\end{proof}
+\end{claim*}
+
+\begin{claim*}
+If $\cup BAD_r$ contains only faulty nodes, then $\cup BAD_{r+1}$ contains only faulty nodes.
+\begin{proof}
+Consider a non-faulty node q. By Claim 2, q’s gradecast confidence is 2 at all non-faulty
+nodes. Thus, no non-faulty node adds q to BAD in the current iteration. Therefore, ∪BADr+1
+contains only faulty nodes.
+\end{proof}
+\end{claim*}
+
+\begin{claim*}
+If non-faulty nodes $p$, $q$ have different values of $maj$ at round $r$, then $|\cap BAD_{r+1}| > | \cap BAD_r|$.
+\begin{proof}
+If p has a different value of maj than q, then (w.l.o.g.) by the definition of maj (Line 5)
+there is some Byzantine node z such that p received hz, u, ∗i from z’s gradecast, and q received
+hz, u′, ∗i, s.t. u 6= u′. By the properties of gradecast, all non-faulty nodes have confidence of at
+most 1 for z’s gradecast. Therefore, by Line 8, all non-faulty nodes add z to BAD. That is,
+z ∈ ∩BADr+1.
+To conclude the proof, we need to show that z / ∈ ∩BADr. Since p and q see different confidence
+for z’s gradecast, we conclude that some non-faulty node didn’t ignore z’s messages. (Otherwise, by
+Claim 1, z gradecast confidence would have been 0 at all non-faulty nodes.) Therefore, we conclude
+that z / ∈ ∩BADr
+\end{proof}
+\end{claim*}
+
+\begin{claim*}
+If all non-faulty nodes have the same value of $maj$ at round $r$, then all non-faulty nodes end round $r$ with the same value $v$.
+\begin{proof}
+Immediate from Line 7.
+\end{proof}
+\end{claim*}
+
+\begin{claim*}
+If some node $p$ breaks the main loop due to Line 9 during round $r$, then all non-faulty nodes end round $r$ with the same value $v$.
+
+\begin{proof}
+For p to pass the condition of Line 9, maj must be at least n − t. That is, p sees at
+least n − t gradecast values equal to maj with confidence 2. From the properties of gradecast, all
+other non-faulty nodes see n − t gradecast values equal to maj with confidence ≥ 1. By Line 5,7
+they all update their value to be that same value
+\end{proof}
+
+\end{claim*}
+
+\end{appendices}
+
+\end{document}
